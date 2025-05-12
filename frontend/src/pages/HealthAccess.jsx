@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const API_KEY = "AIzaSyBMHffY3LU_bNvkzXP8ULaJvL6A-oTtCDg"; // Replace with your actual Gemini API key
 
 const HealthAccess = () => {
   const [patientName, setPatientName] = useState("");
@@ -13,23 +16,25 @@ const HealthAccess = () => {
     setConsultationScheduled(true);
   };
 
-  const handleRunDiagnostics = () => {
-    setDiagnosticResults({
-      diagnosis: "Mild Respiratory Infection",
-      recommendedCare: "Rest, hydration, and over-the-counter cold medication",
-    });
-  };
-
   const handleGetRecommendation = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/get-recommendation",
-        {
-          symptoms,
-        }
-      );
+      const genAI = new GoogleGenerativeAI(API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-      setAiRecommendation(response.data.recommendation);
+      const prompt = `
+        Patient Details:
+        - Name: ${patientName}
+        - Age: ${age}
+        - Symptoms: ${symptoms}
+
+        Based on these details, provide a medical recommendation in simple terms.
+        Do not give response in bold letters follow problem, cure, precation mode. And give only 3 paragraph answer.
+      `;
+
+      const response = await model.generateContent(prompt);
+      const recommendation = response.response.text();
+
+      setAiRecommendation(recommendation);
     } catch (error) {
       console.error("Error fetching AI recommendations:", error);
       setAiRecommendation("Unable to fetch recommendations at this time.");
@@ -39,7 +44,7 @@ const HealthAccess = () => {
   return (
     <div className="p-4 mx-auto max-w-3xl text-gray-800">
       <h2 className="text-center text-3xl font-semibold py-6 text-gray-700">
-        Community Health Platform
+        Health Queries
       </h2>
 
       <div className="mb-6">
@@ -85,15 +90,6 @@ const HealthAccess = () => {
           className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Schedule Virtual Consultation
-        </button>
-      </div>
-
-      <div className="mb-6">
-        <button
-          onClick={handleRunDiagnostics}
-          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Run AI Diagnostics
         </button>
       </div>
 

@@ -2,12 +2,17 @@ import React, { useState } from "react";
 
 const LungCancerDetection = () => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewURL, setPreviewURL] = useState(null);
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewURL(URL.createObjectURL(file)); // Generate preview URL
+    }
   };
 
   const handleUpload = async () => {
@@ -43,16 +48,30 @@ const LungCancerDetection = () => {
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Lung Cancer Detection</h2>
+
       <input type="file" onChange={handleFileChange} className="mb-4" />
+
+      {previewURL && (
+        <div className="mt-4">
+          <p className="text-gray-700 font-semibold">Image Preview:</p>
+          <img
+            src={previewURL}
+            alt="Uploaded Preview"
+            className="w-64 h-64 object-cover border rounded-md shadow-md mt-2"
+          />
+        </div>
+      )}
+
       <button
         onClick={handleUpload}
-        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        className="bg-blue-500 text-white px-4 py-2 rounded-md mt-4"
         disabled={loading}
       >
         {loading ? "Uploading..." : "Upload & Predict"}
       </button>
 
       {error && <p className="text-red-500 mt-4">{error}</p>}
+
       {prediction && (
         <div className="mt-4 p-4 border rounded-md bg-gray-100">
           <p className="text-lg font-semibold">Result: {prediction.result}</p>
